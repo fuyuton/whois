@@ -6,24 +6,13 @@ require 'socket'
 require 'sqlite3'
 require 'uri'
 require 'nkf'
-#require 'tld'		# gem install tld license:mit https://github.com/alexrabarts/tld
 
 qs = ''
 
 def parseurl(url)
 
-	#URL解析して、gTLDを抽出
-	#http(s)://を見つけてURLであると判断する
-
 	uri = URI.parse(url)
 
-	#http(s)://から最初の/または/がない場合、文字列の最後までを抽出
-
-	#uri.host
-
-	#文字列の最後の.を探してそれ以降をgTLDとする。
-	#(一部例外のドメインがあるけどそれはあとでやる)
-	
 	domain = uri.host
 	dom = domain.split('.')
 	return dom
@@ -47,7 +36,6 @@ def findserver(url)
 	    if !(/\A;/ =~ line) then	# ;で始まる行を飛ばす
 	      dat = line.split(' ')
 		  server[dat[0]] = dat[1]
-		  #print dat[0], " = ", server[dat[0]], "\n"
 	    end #if
 	  end #while
 	} #file.open
@@ -91,7 +79,6 @@ begin
 		form = CGI.escape(fm)
 	}
 
-	#url = "https://coinex.pw"
 	uri = URI.parse(url)
 	pdomain = parseurl(url)
 	fdomain = pdomain[pdomain.length - 2] + '.' + pdomain[pdomain.length - 1]
