@@ -10,9 +10,7 @@ require 'nkf'
 qs = ''
 
 def parseurl(url)
-
 	uri = URI.parse(url)
-
 	domain = uri.host
 	dom = domain.split('.')
 	return dom
@@ -80,19 +78,22 @@ begin
 	}
 
 	uri = URI.parse(url)
-	pdomain = parseurl(url)
-	fdomain = pdomain[pdomain.length - 2] + '.' + pdomain[pdomain.length - 1]
+	dom = parseurl(url)
+	tdom = dom[dom.length - 2] + '.' + dom[dom.length - 1]
 
 	header = {'charset' => 'UTF-8',
 	 		  'type' => 'text/plain'}
 	print cgi.header(header)
 
 	if uri.host != nil then
+	  #Domainに合うWhois Serverの検索
 	  serv = findserver(url)
-	  #print "SEARCH for #{fdomain}\n"
+
+	  #print "SEARCH for #{tdom}\n"
 	  #print "whois server is  #{serv}\n"
+	  #Whois Serverに問い合わせ
 	  TCPSocket.open(serv, 43){|f|
-		f.print "#{fdomain}\r\n"	# query
+		f.print "#{tdom}\r\n"	# query
 		rowdat = f.read
 	  } #TCPSocket.open
 		
@@ -103,23 +104,23 @@ begin
 		  serv = ln[1].chomp.strip
 		end
 	  }
+	  #2つめのWhois Serverに問い合わせ
 	  TCPSocket.open(serv, 43){|f|
-		f.print "#{fdomain}\r\n"	# query
+		f.print "#{tdom}\r\n"	# query
 		rowdat = f.read
 
 	  } #TCPSocket.open
 
-		if form.downcase == 'raw' then
-			print NKF.nkf("-w -X -m0", rowdat)
-			#print rowdat
-		#else if format.downcase == 'json' then
-		#	# json output
-		#else if format.downcase == 'xml' then
-		#	# xml output
-		#else
-		#	# error output
-		end
-
+	  if form.downcase == 'raw' then
+		print NKF.nkf("-w -X -m0", rowdat)
+		#print rowdat
+	  #else if format.downcase == 'json' then
+	  #	# output json
+	  #else if format.downcase == 'xml' then
+	  #	# output xml
+	  #else
+	  #	# output error message
+	  end
 	end #if
 
 
