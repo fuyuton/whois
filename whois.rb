@@ -39,11 +39,16 @@ def findserver(url)
 	} #file.open
 
 	#WhoisサーバリストからTLDに合うWhoisサーバーを抽出
-    wiserver = server["#{sld}.#{tld}"]
-	wiserver = server[tld] if wiserver == nil
+	result['keyurl'] = sld+"."+tld
+	result['who'] = dom+"."+sld+"."+tld
+    result['wiserver'] = server["#{sld}.#{tld}"]
+
+	result['keyurl'] = tld if result['wiserver'] == nil
+	result['who'] = sld+"."+tld if result['wiserver'] == nil
+	result['wiserver'] = server[tld] if result['wiserver'] == nil
 
 	#Whoisサーバーを返す
-	return wiserver
+	return result
 end #def findserver
 
 #デバッグ用
@@ -61,6 +66,7 @@ if $0 == __FILE__
 begin
 	cgi = CGI.new
 	params = Hash.new
+	result = Hash.new
 	url = ''
 	form = ''
 	rowdat = ''
@@ -79,7 +85,11 @@ begin
 
 	uri = URI.parse(url)
 	dom = parseurl(url)
-	tdom = dom[dom.length - 2] + '.' + dom[dom.length - 1]
+	tld = dom[dom.length-1]
+	sld = dom[dom.length-2]
+	domain = dom[dom.length-3] if dom.length - 3 >= 0 
+
+	tdom = sld + '.' + tld
 
 	header = {'charset' => 'UTF-8',
 	 		  'type' => 'text/plain'}
@@ -87,16 +97,23 @@ begin
 
 	if uri.host != nil then
 	  #Domainに合うWhois Serverの検索
-	  serv = findserver(url)
+	  #serv = findserver(url)
+	  result = findserver(url)
+	  serv = result['wiserver']
+	  who = result['who']
 
 	  #print "SEARCH for #{tdom}\n"
 	  #print "whois server is  #{serv}\n"
 	  #Whois Serverに問い合わせ
 	  TCPSocket.open(serv, 43){|f|
-		f.print "#{tdom}\r\n"	# query
+	    wh = who
+	  	wh = who+"\/e" if serv == 'whois.jprs.jp'
+		f.print "#{wh}\r\n"	# query
 		rowdat = f.read
+		print rowdat,"\r\n"
 	  } #TCPSocket.open
-		
+
+
 	  #結果にWhois Serverが含まれていたら、:で分割する
 	  rowdat.each{|line|
 		if line =~ /Whois Server:/ then
@@ -104,16 +121,19 @@ begin
 		  serv = ln[1].chomp.strip
 		end
 	  }
+
 	  #2つめのWhois Serverに問い合わせ
 	  TCPSocket.open(serv, 43){|f|
-		f.print "#{tdom}\r\n"	# query
+	  	wh = who
+	  	wh = who+"\/e" if serv == 'whois.jprs.jp'
+		f.print "#{wh}\r\n"	# query
 		rowdat = f.read
 
 	  } #TCPSocket.open
 
 	  if form.downcase == 'raw' then
-		print NKF.nkf("-w -X -m0", rowdat)
-		#print rowdat
+		#print NKF.nkf("-w -X -m0", rowdat)
+		print rowdat,"\r\n"
 	  #else if format.downcase == 'json' then
 	  #	# output json
 	  #else if format.downcase == 'xml' then
