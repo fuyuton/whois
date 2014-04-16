@@ -37,7 +37,7 @@ def findserver(purl)
 	#len = domain.length
 
 	#Whoisサーバリストを読み込む
-	File.open("/home/fuyuton/src/whois/whois-servers.txt"){|file|
+	File.open("whois-servers.txt"){|file|
 	  while  line = file.gets
 	    if !(/\A;/ =~ line) then	# ;で始まる行を飛ばす
 	      dat = line.split(' ')
@@ -98,7 +98,7 @@ def db_save(data)
 	depth	= data['depth']
 	id		= 0
 
-	dbpath = "/home/fuyuton/src/whois/whois_cache.db"
+	dbpath = "whois_cache.db"
 	db = SQLite3::Database.new dbpath
 
 	db.execute("select max(id) from data;") do |row|
@@ -129,7 +129,7 @@ end
 
 
 def load_url
-	dbpath = "/home/fuyuton/NccDB/NccDB.sqlite3"
+	dbpath = "NccDB.sqlite3"
 	db = SQLite3::Database.new dbpath
 	db.execute(
 		"SELECT url FROM service_url WHERE id_coin_url_type = 1"
@@ -169,7 +169,7 @@ begin
 
 	cachedata = load_cache(cachedata)
 
-	dbpath = "/home/fuyuton/NccDB/NccDB.sqlite3"
+	dbpath = "NccDB.sqlite3"
 	db = SQLite3::Database.new dbpath
 	sql = "SELECT url FROM service_url WHERE id_coin_url_type = 1;"
 	
